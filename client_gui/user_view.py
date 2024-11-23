@@ -5,7 +5,7 @@ import os
 import mysql.connector
 from mysql.connector import Error
 from collections import deque
-
+from client_gui.delete_account import open_delete_account_gui
 class MusicPlayer:
     def __init__(self, root):
         self.root = root
@@ -13,6 +13,9 @@ class MusicPlayer:
         self.new_window.title("Music Player")
         self.new_window.configure(bg="black")
         self.new_window.geometry("800x600")
+
+        # Get the current directory of the Python file
+        current_directory = os.path.dirname(os.path.abspath(__file__))
 
         # Exit Protocol
         self.new_window.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -59,7 +62,7 @@ class MusicPlayer:
         self.playlist_listbox.pack(fill=tk.BOTH, expand=True, pady=20)
 
         # Account center button (borderless)
-        self.account_button = tk.Button(self.main_frame, text="Account Center", bg="#2e2e2e", fg="white", relief=tk.FLAT)
+        self.account_button = tk.Button(self.main_frame, text="Delete Accounts", bg="#2e2e2e", fg="white", relief=tk.FLAT, command=lambda: open_delete_account_gui(root))
         self.account_button.place(x=600, y=50, width=200, height=50)
 
         # Queue frame
@@ -85,7 +88,7 @@ class MusicPlayer:
         self.latest_frame = tk.Frame(self.main_frame, bg="#2e2e2e")
         self.latest_frame.place(x=200, y=50, width=400, height=450)
 
-        self.latest_label = tk.Label(self.latest_frame, text="Latest Songs and Albums", bg="#2e2e2e", fg="white")
+        self.latest_label = tk.Label(self.latest_frame, text="Latest Albums", bg="#2e2e2e", fg="white")
         self.latest_label.pack(pady=10)
 
         # Add Treeview in the center with album title and a button
@@ -113,7 +116,7 @@ class MusicPlayer:
 
 
         # Load and resize images using PIL
-        self.previous_image = Image.open("prev.png")
+        self.previous_image = Image.open(os.path.join("prev.png"))
         self.previous_image = self.previous_image.resize((50, 50), Image.LANCZOS)  # Adjust the size as needed
         self.previous_image = ImageTk.PhotoImage(self.previous_image)
 
@@ -191,7 +194,6 @@ class MusicPlayer:
             password='Adobo5093',    # Replace with your MySQL password
             database='musiclibrarydb'     # Replace with your database name
             )
-            print("connected")
             return connection
         except Error as e:
             tk.messagebox.showerror("Database Error", f"Error connecting to database: {e}")
