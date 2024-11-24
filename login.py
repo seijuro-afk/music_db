@@ -3,7 +3,9 @@ from tkinter import messagebox
 from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
-from user_view.user_view import MusicPlayer
+from client_gui.user_view import MusicPlayer
+import os
+
 
 # Connect to MySQL database
 def create_connection():
@@ -29,12 +31,14 @@ def signup():
     if connection is not None:
         cursor = connection.cursor()
         try:
-            cursor.execute("INSERT INTO account (username, email, password, created_at) VALUES (%s, %s, %s, %s)", 
+            cursor.execute("INSERT INTO accounts (username, email, password, created_at) VALUES (%s, %s, %s, %s)", 
                            (username, email, password, created_at))
             connection.commit()
             messagebox.showinfo("Signup", "Account created successfully!")
-            MusicPlayer(root)
+            cursor.execute("SELECT account_id FROM accounts WHERE username = %s AND email = %s AND password = %s", (username, email, password))
+            acc_id = cursor.fetchone()
             root.withdraw()
+            MusicPlayer(root, acc_id)
         except Error as e:
             messagebox.showerror("Signup Error", f"Error: {e}")
         finally:
@@ -45,17 +49,20 @@ def signup():
 def login():
     email = entry_email.get()
     password = entry_password.get()
-
+    username = entry_username.get()
+    
     connection = create_connection()
     if connection is not None:
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM account WHERE email = %s AND password = %s", (email, password))
+            cursor.execute("SELECT * FROM accounts WHERE email = %s AND password = %s", (email, password))
             account = cursor.fetchone()
             if account:
                 messagebox.showinfo("Login", "Login successful!")
+                cursor.execute("SELECT account_id FROM accounts WHERE username = %s AND email = %s AND password = %s", (username, email, password))
+                acc_id = cursor.fetchone()
                 root.withdraw()
-                MusicPlayer(root)
+                MusicPlayer(root, acc_id)
             else:
                 messagebox.showerror("Login", "Invalid email or password.")
         except Error as e:

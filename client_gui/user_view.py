@@ -6,8 +6,10 @@ import mysql.connector
 from mysql.connector import Error
 from collections import deque
 from client_gui.delete_account import open_delete_account_gui
+from client_gui.playlist_control import open_playlist_control_gui
 class MusicPlayer:
-    def __init__(self, root):
+    def __init__(self, root, acc_id):
+        self.acc_id = acc_id
         self.root = root
         self.new_window = Toplevel(root)
         self.new_window.title("Music Player")
@@ -51,15 +53,25 @@ class MusicPlayer:
         self.playlist_frame = tk.Frame(self.main_frame, bg="#2e2e2e")
         self.playlist_frame.place(x=0, y=50, width=200, height=500)
 
+        self.account_button = tk.Button(
+            self.main_frame, 
+            text="Playlist Controls", 
+            bg="#2e2e2e", 
+            fg="white", 
+            relief=tk.FLAT, 
+            command=lambda: open_playlist_control_gui(self.acc_id[0])  # Extract the ID from tuple
+        )
+        self.account_button.place(x=0, y=50, width=200, height=50)
+
         self.playlist_label = tk.Label(self.playlist_frame, text="Playlist", bg="#2e2e2e", fg="white")
         self.playlist_label.pack(pady=10)
 
-        self.playlist_listbox = ttk.Treeview(self.playlist_frame, columns=("TitlePlaylist", "Action"), show="headings")
+        self.playlist_listbox = ttk.Treeview(self.playlist_frame, columns=("TitlePlaylist"), show="headings")
         self.playlist_listbox.heading("TitlePlaylist", text="Title")
         self.playlist_listbox.column("TitlePlaylist", anchor=tk.W, width=100)
-        self.playlist_listbox.heading("Action", text="Add")
-        self.playlist_listbox.column("Action", anchor=tk.W, width=30)
         self.playlist_listbox.pack(fill=tk.BOTH, expand=True, pady=20)
+
+        self.populate_playlist_listbox()
 
         # Account center button (borderless)
         self.account_button = tk.Button(self.main_frame, text="Delete Accounts", bg="#2e2e2e", fg="white", relief=tk.FLAT, command=lambda: open_delete_account_gui(root))
@@ -99,7 +111,7 @@ class MusicPlayer:
         self.album_tree.column("Button", anchor=tk.CENTER, width=100)
         self.album_tree.pack(fill=tk.BOTH, expand=True)
 
-        self.fetch_and_display_albums()
+        # self.fetch_and_display_albums()
 
         # Music player controls frame
         self.controls_frame = tk.Frame(self.main_frame, bg="#2e2e2e")
@@ -215,7 +227,16 @@ class MusicPlayer:
 
     def enqueue_song(self, song):
         self.song_queue.append(song)
-        self.queue_listbox.insert(tk.END, f"{song[0]} ({song[2]}) - {song[1]}")
+        try:
+            if len(song) == 2:
+                # Ensure the parent and index parameters are correctly set
+                self.queue_listbox.insert('', 'end', values=(song[0], song[1]))
+            else:
+                print("Song tuple does not have the expected number of elements:", song)
+        except Exception as e:
+            print(f"Error inserting song into listbox: {e}")
+
+
 
     def dequeue_song(self):
         if self.song_queue:
@@ -246,4 +267,25 @@ class MusicPlayer:
                 cursor.close()
                 connection.close()
 
+
+    def fetch_playlists_for_account(self):
+        connection = self.create_connection()
+        if connection is not None:
+            cursor = connection.cursor()
+            query = f"SELECT p.name FROM playlist p JOIN accounts a ON p.account_id = a.account_id WHERE a.account_id = {self.acc_id[0]}"
+            cursor.execute(query)
+            return cursor.fetchall()
+        return []
+
+    def populate_playlist_listbox(self):
+        # Fetch playlists for the given account
+        playlists = self.fetch_playlists_for_account()
         
+        # Clear existing data in the Treeview
+        for item in self.playlist_listbox.get_children():
+            self.playlist_listbox.delete(item)
+        
+        # Populate the Treeview with playlist data
+        for playlist in playlists:
+            title = playlist
+            self.playlist_listbox.insert("", tk.END, values=(title))
