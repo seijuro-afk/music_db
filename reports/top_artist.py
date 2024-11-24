@@ -1,121 +1,96 @@
-import tkinter as tk
-from tkinter import ttk
 import mysql.connector
-from mysql.connector import Error
+from tkinter import *
+from tkinter import ttk, messagebox
 
 def fetch_most_listened_artists():
-    """Fetch the most listened artists based on song streams from the database."""
     try:
         # Connect to the database
         connection = mysql.connector.connect(
-            host='localhost',
-            user='root',  # Replace with your username
-            password='Adobo5093',  # Replace with your password
-            database='musiclibrarydb'  # Replace with your database name
+            host="localhost",
+            user="root",
+            password="your_password",
+            database="musiclibrarydb"
         )
+        cursor = connection.cursor()
 
-        if connection.is_connected():
-            cursor = connection.cursor()
-            query = """
-                SELECT 
-                    a.name AS Artist_Name,
-                    SUM(s.song_streams) AS Total_Streams
-                FROM 
-                    artists a
-                JOIN 
-                    songsartists sa ON a.artist_id = sa.artist_id
-                JOIN 
-                    songs s ON sa.song_id = s.song_id
-                GROUP BY 
-                    a.artist_id
-                ORDER BY 
-                    Total_Streams DESC
-                LIMIT 10;
-            """
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return result
-    except Error as e:
-        print(f"Error: {e}")
-        return []
+        # Query for most listened artists
+        query = """
+        SELECT 
+            a.name AS Artist_Name,
+            COUNT(sh.song_id) AS Play_Count
+        FROM 
+            songhistory sh
+        JOIN 
+            songs s ON sh.song_id = s.song_id
+        JOIN 
+            songsartists sa ON s.song_id = sa.song_id
+        JOIN 
+            artists a ON sa.artist_id = a.artist_id
+        GROUP BY 
+            a.artist_id
+        ORDER BY 
+            Play_Count DESC;
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+
+        # Clear the table
+        for item in table.get_children():
+            table.delete(item)
+
+        # Insert fetched data into the table
+        for row in rows:
+            table.insert("", "end", values=row)
+
+        if not rows:
+            messagebox.showinfo("No Data", "No artist records found.")
+
+    except mysql.connector.Error as e:
+        messagebox.showerror("Database Error", f"Error connecting to database:\n{e}")
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-def display_most_listened_artists():
-    """Display the most listened artists in a Tkinter GUI."""
-    # Fetch data
-    data = fetch_most_listened_artists()
+# Create GUI
+root = Tk()
+root.title("Most Listened Artists")
+root.geometry("600x400")
+root.configure(bg="#2b2b2b")  # Dark theme background
 
-    # Create the main window
-    root = tk.Tk()
-    root.title("Most Listened Artists")
-    root.geometry("500x400")
-    root.configure(bg="#121212")  # Dark background
+# Label
+title_label = Label(
+    root, text="Top Artists", font=("Helvetica", 16), fg="white", bg="#2b2b2b"
+)
+title_label.pack(pady=10)
 
-    # Title Label
-    title_label = tk.Label(
-        root, 
-        text="Most Listened Artists", 
-        bg="#121212", 
-        fg="white", 
-        font=("Arial", 16, "bold")
-    )
-    title_label.pack(pady=10)
+# Table
+columns = ("Artist Name", "Play Count")
+table = ttk.Treeview(root, columns=columns, show="headings", height=15)
+table.heading("Artist Name", text="Artist Name")
+table.heading("Play Count", text="Play Count")
+table.column("Artist Name", width=300)
+table.column("Play Count", width=100)
+table.pack(pady=20)
 
-    # Create a Treeview widget with dark theme styling
-    style = ttk.Style()
-    style.theme_use("clam")
-    style.configure(
-        "Treeview",
-        background="#1e1e1e",
-        foreground="white",
-        rowheight=25,
-        fieldbackground="#1e1e1e",
-        font=("Arial", 10)
-    )
-    style.configure(
-        "Treeview.Heading",
-        background="#2c2c2c",
-        foreground="white",
-        font=("Arial", 11, "bold")
-    )
-    style.map(
-        "Treeview",
-        background=[("selected", "#333333")],
-        foreground=[("selected", "white")]
-    )
+# Style for dark theme
+style = ttk.Style()
+style.theme_use("clam")
+style.configure(
+    "Treeview",
+    background="#444",
+    foreground="white",
+    fieldbackground="#444",
+    rowheight=25,
+    font=("Helvetica", 10),
+)
+style.configure("Treeview.Heading", background="#333", foreground="white", font=("Helvetica", 11))
 
-    # Add Treeview to display artist data
-    tree = ttk.Treeview(root, columns=("Artist Name", "Total Streams"), show="headings")
-    tree.heading("Artist Name", text="Artist Name")
-    tree.heading("Total Streams", text="Total Streams")
-    tree.column("Artist Name", width=250)
-    tree.column("Total Streams", width=150, anchor="center")
+# Button
+fetch_button = Button(
+    root, text="Fetch Most Listened Artists", command=fetch_most_listened_artists, bg="#444", fg="white", font=("Helvetica", 11), relief=FLAT
+)
+fetch_button.pack(pady=10)
 
-    # Add data to the Treeview
-    for row in data:
-        tree.insert("", tk.END, values=row)
-
-    tree.pack(pady=10, fill=tk.BOTH, expand=True)
-
-    # Add a muted close button
-    close_button = tk.Button(
-        root, 
-        text="Close", 
-        command=root.destroy, 
-        bg="#2c2c2c", 
-        fg="white", 
-        font=("Arial", 10),
-        relief="flat",  # No colorful borders
-        activebackground="#333333",  # Darker hover background
-        activeforeground="white"
-    )
-    close_button.pack(pady=10)
-
-    # Run the application
-    root.mainloop()
-
-# Call the display function
-display_most_listened_artists()
+# Run the GUI
+root.mainloop()
