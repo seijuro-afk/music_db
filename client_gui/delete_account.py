@@ -32,7 +32,7 @@ def open_delete_account_gui(main_window):
 
             # Verify the account credentials
             cursor.execute(
-                "SELECT account_id FROM account WHERE username = %s AND email = %s AND password = %s",
+                "SELECT email FROM accounts WHERE username = %s AND email = %s AND password = %s",
                 (username, email, password)
             )
             result = cursor.fetchone()
@@ -41,7 +41,7 @@ def open_delete_account_gui(main_window):
                 messagebox.showerror("Account Not Found", "No account matches the provided credentials.")
                 return
 
-            account_id = result[0]
+            mail = result[0]
 
             confirm = messagebox.askyesno(
                 "Confirm Deletion",
@@ -52,15 +52,20 @@ def open_delete_account_gui(main_window):
 
             # Perform deletion of associated data
             delete_queries = [
-                "DELETE FROM playlistssongs WHERE playlist_id IN (SELECT playlist_id FROM playlist WHERE account_id = %s)",
-                "DELETE FROM playlist WHERE account_id = %s",
-                "DELETE FROM songhistory WHERE account_id = %s",
-                "DELETE FROM accountlikessong WHERE account_id = %s",
-                "DELETE FROM account WHERE account_id = %s"
+                ("DELETE FROM albumartist WHERE artist_id IN (SELECT artist_id FROM artists WHERE email = %s)", (mail,)),
+                ("DELETE FROM artists WHERE email = %s", (mail,)),
+                ("DELETE FROM playlistssongs WHERE playlist_id IN (SELECT playlist_id FROM playlist WHERE email = %s)", (mail,)),
+                ("DELETE FROM playlist WHERE email = %s", (mail,)),
+                ("DELETE FROM albumssongs WHERE song_id IN (SELECT song_id FROM songsartists WHERE artist_id IN (SELECT artist_id FROM artists WHERE email = %s))", (mail,)),
+                ("DELETE FROM songsartists WHERE artist_id IN (SELECT artist_id FROM artists WHERE email = %s)", (mail,)),
+                ("DELETE FROM songhistory WHERE account_id IN (SELECT account_id FROM accounts WHERE email = %s)", (mail,)),
+                ("DELETE FROM accountlikessong WHERE account_id IN (SELECT account_id FROM accounts WHERE email = %s)", (mail,)),
+                ("DELETE FROM accounts WHERE email = %s AND username = %s AND password = %s", (email, username, password))
             ]
-            for query in delete_queries:
-                cursor.execute(query, (account_id,))
 
+            for query, params in delete_queries:
+                cursor.execute(query, params)
+            
             connection.commit()
 
             # Success message

@@ -17,10 +17,10 @@ def connect_to_db():
         messagebox.showerror("Database Error", f"Error connecting to the database:\n{e}")
         return None
 
-def open_playlist_control_gui(account_id):
+def open_playlist_control_gui(email):
     """Opens the Playlist Control GUI."""
     playlist_window = Tk()
-    playlist_window.title(f"Playlist Control - Account ID: {account_id}")
+    playlist_window.title(f"Playlist Control - Email: {email}")
     playlist_window.geometry("700x500")
     playlist_window.configure(bg="#2b2b2b")
 
@@ -40,10 +40,10 @@ def open_playlist_control_gui(account_id):
         if connection:
             try:
                 cursor = connection.cursor()
-                # Ensure account_id is passed as a list with a single integer
+                # Ensure email is passed correctly
                 cursor.execute(
-                    "SELECT playlist_id, name, created_at FROM playlist WHERE account_id = %s", 
-                    [int(account_id)]  # Convert to int and wrap in list
+                    "SELECT playlist_id, name, created_at FROM playlist WHERE email = %s", 
+                    (email,)
                 )
                 rows = cursor.fetchall()
 
@@ -56,8 +56,7 @@ def open_playlist_control_gui(account_id):
                     # Convert datetime to string format
                     playlist_id, name, created_at = row
                     created_at_str = created_at.strftime("%Y-%m-%d %H:%M:%S") if created_at else ""
-                
-                    #Insert formatted values
+                    # Insert formatted values
                     playlist_table.insert("", "end", values=(playlist_id, name, created_at_str))
 
             except mysql.connector.Error as e:
@@ -68,7 +67,7 @@ def open_playlist_control_gui(account_id):
                     connection.close()
 
     def create_playlist():
-        """Create a new playlist for the specified account_id."""
+        """Create a new playlist for the specified account."""
         playlist_name = simpledialog.askstring("Create Playlist", "Enter playlist name:")
         if not playlist_name:
             messagebox.showwarning("Input Error", "Playlist name cannot be empty.")
@@ -79,15 +78,14 @@ def open_playlist_control_gui(account_id):
             try:
                 cursor = connection.cursor()
                 created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                # Pass parameters as a list instead of a tuple
+                # Pass parameters correctly
                 cursor.execute(
-                    "INSERT INTO playlist (name, created_at, account_id) VALUES (%s, %s, %s)",
-                    [playlist_name, created_at, account_id]
+                    "INSERT INTO playlist (name, created_at, email) VALUES (%s, %s, %s)",
+                    (playlist_name, created_at, email)
                 )
                 connection.commit()
                 messagebox.showinfo("Success", f"Playlist '{playlist_name}' created successfully.")
                 fetch_playlists()
-                lambda: populate_playlist_listbox()
             except mysql.connector.Error as e:
                 messagebox.showerror("Database Error", f"Error creating playlist:\n{e}")
             finally:
@@ -114,8 +112,8 @@ def open_playlist_control_gui(account_id):
             try:
                 cursor = connection.cursor()
                 # Use lists instead of tuples for parameters
-                cursor.execute("DELETE FROM playlistssongs WHERE playlist_id = %s", [playlist_id])
-                cursor.execute("DELETE FROM playlist WHERE playlist_id = %s", [playlist_id])
+                cursor.execute("DELETE FROM playlistssongs WHERE playlist_id = %s", (playlist_id,))
+                cursor.execute("DELETE FROM playlist WHERE playlist_id = %s", (playlist_id,))
                 connection.commit()
                 messagebox.showinfo("Success", f"Playlist ID {playlist_id} deleted successfully.")
                 fetch_playlists()
@@ -148,7 +146,7 @@ def open_playlist_control_gui(account_id):
             try:
                 cursor = connection.cursor()
                 # Use list instead of tuple for parameters
-                cursor.execute("INSERT INTO playlistssongs (playlist_id, song_id) VALUES (%s, %s)", [playlist_id, song_id])
+                cursor.execute("INSERT INTO playlistssongs (playlist_id, song_id) VALUES (%s, %s)", (playlist_id, song_id))
                 connection.commit()
                 messagebox.showinfo("Success", f"Song ID {song_id} added to Playlist ID {playlist_id}.")
                 song_id_entry.delete(0, END)
@@ -162,7 +160,7 @@ def open_playlist_control_gui(account_id):
 
     # Title Label
     title_label = Label(
-        playlist_window, text=f"Playlist Control for Account ID: {account_id}",
+        playlist_window, text=f"Playlist Control for Email: {email}",
         font=("Helvetica", 16), fg="white", bg="#2b2b2b"
     )
     title_label.pack(pady=10)
@@ -215,6 +213,6 @@ def open_playlist_control_gui(account_id):
 
 # Run GUI
 if __name__ == "__main__":
-    account_id = simpledialog.askinteger("Account ID", "Enter your account ID:")
-    if account_id:
-        open_playlist_control_gui(account_id)
+    email = simpledialog.askstring("Email", "Enter your email:")
+    if email:
+        open_playlist_control_gui(email)

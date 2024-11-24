@@ -35,10 +35,8 @@ def signup():
                            (username, email, password, created_at))
             connection.commit()
             messagebox.showinfo("Signup", "Account created successfully!")
-            cursor.execute("SELECT account_id FROM accounts WHERE username = %s AND email = %s AND password = %s", (username, email, password))
-            acc_id = cursor.fetchone()
             root.withdraw()
-            MusicPlayer(root, acc_id)
+            MusicPlayer(root, email)
         except Error as e:
             messagebox.showerror("Signup Error", f"Error: {e}")
         finally:
@@ -53,16 +51,15 @@ def login():
     
     connection = create_connection()
     if connection is not None:
-        cursor = connection.cursor()
+        cursor = connection.cursor(buffered=True)
         try:
             cursor.execute("SELECT * FROM accounts WHERE email = %s AND password = %s", (email, password))
             account = cursor.fetchone()
+            cursor.fetchall()
             if account:
                 messagebox.showinfo("Login", "Login successful!")
-                cursor.execute("SELECT account_id FROM accounts WHERE username = %s AND email = %s AND password = %s", (username, email, password))
-                acc_id = cursor.fetchone()
                 root.withdraw()
-                MusicPlayer(root, acc_id)
+                MusicPlayer(root, email)
             else:
                 messagebox.showerror("Login", "Invalid email or password.")
         except Error as e:
