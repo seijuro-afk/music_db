@@ -183,13 +183,13 @@ CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`playlist` (
   `playlist_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL DEFAULT 'untitled',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `account_id` INT NOT NULL,
+  `email` VARCHAR(200) NOT NULL,
   `playlist_views` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`playlist_id`),
-  INDEX `fk_playlist_account1_idx` (`account_id` ASC) VISIBLE,
+  INDEX `fk_playlist_account1_idx` (`email` ASC) VISIBLE,
   CONSTRAINT `fk_playlist_account1`
-    FOREIGN KEY (`account_id`)
-    REFERENCES `musiclibrarydb`.`account` (`account_id`)
+    FOREIGN KEY (`email`)
+    REFERENCES `musiclibrarydb`.`accounts` (`email`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -230,7 +230,7 @@ CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`accountlikessong` (
   INDEX `fk_accountlikessong_songs1_idx` (`song_id` ASC) VISIBLE,
   CONSTRAINT `fk_accountlikessong_account1`
     FOREIGN KEY (`account_id`)
-    REFERENCES `musiclibrarydb`.`account` (`account_id`)
+    REFERENCES `musiclibrarydb`.`accounts` (`account_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_accountlikessong_songs1`
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`songhistory` (
   UNIQUE INDEX `date_played_UNIQUE` (`date_played` ASC) VISIBLE,
   CONSTRAINT `fk_songhistory_account1`
     FOREIGN KEY (`account_id`)
-    REFERENCES `musiclibrarydb`.`account` (`account_id`)
+    REFERENCES `musiclibrarydb`.`accounts` (`account_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_songhistory_songs1`
