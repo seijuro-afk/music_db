@@ -250,9 +250,8 @@ CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`songhistory` (
   `account_id` INT NOT NULL,
   `song_id` INT NOT NULL,
   `date_played` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`account_id`, `song_id`),
+  PRIMARY KEY (`account_id`, `song_id`, `date_played`),
   INDEX `fk_songhistory_songs1_idx` (`song_id` ASC) VISIBLE,
-  UNIQUE INDEX `date_played_UNIQUE` (`date_played` ASC) VISIBLE,
   CONSTRAINT `fk_songhistory_account1`
     FOREIGN KEY (`account_id`)
     REFERENCES `musiclibrarydb`.`accounts` (`account_id`)
@@ -264,6 +263,7 @@ CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`songhistory` (
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
+
 
 DELIMITER //
 
