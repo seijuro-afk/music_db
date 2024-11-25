@@ -17,8 +17,6 @@ class MusicPlayer:
         self.new_window.configure(bg="black")
         self.new_window.geometry("800x600")
 
-        # Get the current directory of the Python file
-        current_directory = os.path.dirname(os.path.abspath(__file__))
 
         # Exit Protocol
         self.new_window.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -30,6 +28,20 @@ class MusicPlayer:
         # Create a canvas for the rounded border
         self.search_canvas = Canvas(self.main_frame, bg="#dddddd", highlightthickness=0)
         self.search_canvas.place(relx=0.5, rely=0, anchor=N, width=410, height=40)
+
+        # Add refresh button at top left
+        self.refresh_button = tk.Button(
+            self.main_frame,
+            text="Refresh",
+            bg="#2e2e2e",
+            fg="white",
+            relief=tk.FLAT,
+            command=self.refresh_all_data,
+            font=('Arial', 10, 'bold')
+        )
+
+        # Place the refresh button in the top left corner
+        self.refresh_button.place(x=10, y=10, width=80, height=30)
 
         # Draw a rounded rectangle
         self.create_rounded_rectangle(self.search_canvas, 5, 5, 405, 35, 10, outline="#2e2e2e", width=2)
@@ -292,10 +304,6 @@ class MusicPlayer:
         return False
 
 
-
-
-
-
     def on_closing(self):
         self.new_window.destroy
         self.root.destroy()
@@ -438,11 +446,26 @@ class MusicPlayer:
         self.add_album_songs_to_queue(album_title)
 
     def add_playlist_songs_to_queue(self, playlist_name):
+        """Add songs from a playlist to the queue with empty playlist check."""
         connection = self.create_connection()
         if connection is not None:
             cursor = connection.cursor()
             try:
-                # Get all songs from the selected playlist
+                # First, check if the playlist exists and has songs
+                check_query = """
+                SELECT COUNT(ps.song_id) 
+                FROM playlist p
+                LEFT JOIN playlistssongs ps ON p.playlist_id = ps.playlist_id
+                WHERE p.name = %s AND p.email = %s
+                """
+                cursor.execute(check_query, (playlist_name, self.email))
+                song_count = cursor.fetchone()[0]
+
+                if song_count == 0:
+                    messagebox.showinfo("Empty Playlist", f"The playlist '{playlist_name}' is empty. Add some songs first!")
+                    return
+
+                # If playlist has songs, proceed with adding them to queue
                 query = """
                 SELECT s.title, s.song_duration 
                 FROM songs s
@@ -453,7 +476,7 @@ class MusicPlayer:
                 cursor.execute(query, (playlist_name, self.email))
                 songs = cursor.fetchall()
 
-                #   Determine if the queue was initially empty
+                # Determine if the queue was initially empty
                 was_empty = len(self.song_queue) == 0
             
                 # Add each song to the queue
@@ -467,14 +490,16 @@ class MusicPlayer:
                     self.highlight_current_song()
 
                 # Update like button text based on the current song's like status
-                current_song = list(self.song_queue)[self.current_song_index]
-                song_id = self.get_song_id(current_song[0])
-                if song_id and self.is_song_liked(song_id):
-                    self.like_button.config(text='Unlike')
-                else:
-                    self.like_button.config(text='Like')
+                if len(self.song_queue) > 0:
+                    current_song = list(self.song_queue)[self.current_song_index]
+                    song_id = self.get_song_id(current_song[0])
+                    if song_id and self.is_song_liked(song_id):
+                        self.like_button.config(text='Unlike')
+                    else:
+                        self.like_button.config(text='Like')
 
                 messagebox.showinfo("Queue Updated", f"Added {len(songs)} songs from playlist '{playlist_name}' to queue")
+
             except mysql.connector.Error as e:
                 messagebox.showerror("Database Error", f"Error adding songs to queue:\n{e}")
             finally:
@@ -603,12 +628,19 @@ class MusicPlayer:
                 query = "UPDATE `musiclibrarydb`.`songs` SET `song_streams` = `song_streams` + 1 WHERE `title` = %s"
                 cursor.execute(query, (current_song[0],))
                 connection.commit()
+
+                # Insert into songhistory
+                account_id = self.get_account_id()  # Assuming you have a way to get the current account_id
+                insert_query = "INSERT INTO `musiclibrarydb`.`songhistory` (`account_id`, `song_id`) VALUES (%s, %s)"
+                cursor.execute(insert_query, (account_id, song_id))
+                connection.commit()
+
             except mysql.connector.Error as e:
-                messagebox.showerror("Database Error", f"Error updating song streams: {e}")
+                messagebox.showerror("Database Error", f"Error updating song streams or inserting song history: {e}")
             finally:
                 cursor.close()
                 connection.close()
-    
+
         # Set like button text based on current like status
         if self.is_song_liked(song_id):
             self.like_button.config(text='Unlike')
@@ -616,6 +648,7 @@ class MusicPlayer:
             self.like_button.config(text='Like')
 
         messagebox.showinfo("Play", f"Playing '{current_song[0]}'")
+
 
     
     def like_song(self):
@@ -728,5 +761,16 @@ class MusicPlayer:
             self.album_tree.insert("", "end", values=(title, duration))
 
 
-
+    def refresh_all_data(self):
+        """Refresh all playlists and data"""
+        try:
+            # Refresh playlists
+            self.populate_playlist_listbox()
+            
+            # Refresh albums
+            self.fetch_and_display_albums()
+            
+            messagebox.showinfo("Refresh", "All data refreshed successfully!")
+        except Exception as e:
+            messagebox.showerror("Refresh Error", f"Error refreshing data: {e}")
 

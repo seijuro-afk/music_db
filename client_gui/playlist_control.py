@@ -21,7 +21,7 @@ def open_playlist_control_gui(email):
     """Opens the Playlist Control GUI."""
     playlist_window = Tk()
     playlist_window.title(f"Playlist Control - Email: {email}")
-    playlist_window.geometry("700x500")
+    playlist_window.geometry("700x600")
     playlist_window.configure(bg="#2b2b2b")
 
     # Create playlist table
