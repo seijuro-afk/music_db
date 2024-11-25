@@ -631,7 +631,7 @@ class MusicPlayer:
 
                 # Insert into songhistory
                 account_id = self.get_account_id()  # Assuming you have a way to get the current account_id
-                insert_query = "INSERT INTO `musiclibrarydb`.`songhistory` (`account_id`, `song_id`) VALUES (%s, %s)"
+                insert_query = "INSERT INTO `musiclibrarydb`.`songhistory` (`account_id`, `song_id`, `date_played`) VALUES (%s, %s, NOW())"
                 cursor.execute(insert_query, (account_id, song_id))
                 connection.commit()
 
@@ -648,6 +648,7 @@ class MusicPlayer:
             self.like_button.config(text='Like')
 
         messagebox.showinfo("Play", f"Playing '{current_song[0]}'")
+
 
 
     
