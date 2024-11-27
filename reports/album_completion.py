@@ -13,17 +13,19 @@ def fetch_all_album_data():
         )
         cursor = conn.cursor(dictionary=True)
 
-        # Updated query to include dynamic completion ratio
+        # Query to calculate completion percentage
         query = """
         SELECT 
             a.album_id,
             a.title AS album_title,
             COALESCE(SUM(s.song_streams), 0) AS total_plays,
             CONCAT(
-                COUNT(CASE WHEN s.song_streams > 0 THEN asg.song_id END), 
-                ' / ', 
-                COUNT(asg.song_id)
-            ) AS completion_ratio
+                ROUND(
+                    100.0 * COUNT(CASE WHEN s.song_streams > 0 THEN asg.song_id END) / COUNT(asg.song_id), 
+                    2
+                ), 
+                '%'
+            ) AS completion_percentage
         FROM 
             albums a
         LEFT JOIN 
@@ -42,7 +44,7 @@ def fetch_all_album_data():
 
         # Populate Treeview with new data
         for row in results:
-            tree.insert("", "end", values=(row['album_id'], row['album_title'], row['total_plays'], row['completion_ratio']))
+            tree.insert("", "end", values=(row['album_id'], row['album_title'], row['total_plays'], row['completion_percentage']))
 
         cursor.close()
         conn.close()
@@ -51,6 +53,7 @@ def fetch_all_album_data():
         messagebox.showerror("Database Error", f"Error: {err}")
     except Exception as e:
         messagebox.showerror("Error", f"Unexpected error: {e}")
+
 
 
 # Create tkinter GUI
@@ -80,7 +83,7 @@ fetch_button = tk.Button(
 fetch_button.pack(pady=10)
 
 # Treeview to display album data
-columns = ("Album ID", "Title", "Total Plays", "Completion Ratio")
+columns = ("Album ID", "Title", "Total Plays", "Completion Percentage")
 tree = ttk.Treeview(root, columns=columns, show="headings", style="Treeview")
 for col in columns:
     tree.heading(col, text=col)
