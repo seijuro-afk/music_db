@@ -19,7 +19,7 @@ def fetch_top_songs():
         )
         cursor = connection.cursor()
         
-        check_data = "SELECT COUNT(*) FROM account WHERE account_id = %s"
+        check_data = "SELECT COUNT(*) FROM accounts WHERE account_id = %s"
         cursor.execute(check_data, (account_id,))
         result = cursor.fetchone()
 

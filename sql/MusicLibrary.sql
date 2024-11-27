@@ -154,19 +154,19 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `musiclibrarydb`.`albumartist`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `musiclibrarydb`.`albumartist` ;
+DROP TABLE IF EXISTS `musiclibrarydb`.`albumsartists` ;
 
-CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`albumartist` (
+CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`albumsartists` (
   `artist_id` INT NOT NULL,
   `album_id` INT NOT NULL,
   PRIMARY KEY (`artist_id`, `album_id`),
-  INDEX `fk_albumartist_album1_idx` (`album_id` ASC) VISIBLE,
+  INDEX `fk_albumsartists_album1_idx` (`album_id` ASC) VISIBLE,
   CONSTRAINT `fk_albumartist_artists1`
     FOREIGN KEY (`artist_id`)
     REFERENCES `musiclibrarydb`.`artists` (`artist_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_albumartist_album1`
+  CONSTRAINT `fk_albumsartists_album1`
     FOREIGN KEY (`album_id`)
     REFERENCES `musiclibrarydb`.`albums` (`album_id`)
     ON DELETE CASCADE
@@ -177,9 +177,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `musiclibrarydb`.`playlist`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `musiclibrarydb`.`playlist` ;
+DROP TABLE IF EXISTS `musiclibrarydb`.`playlists` ;
 
-CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`playlist` (
+CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`playlists` (
   `playlist_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL DEFAULT 'untitled',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS `musiclibrarydb`.`playlistssongs` (
   INDEX `fk_playlistssongs_songs1_idx` (`song_id` ASC) VISIBLE,
   CONSTRAINT `fk_playlistssongs_playlist1`
     FOREIGN KEY (`playlist_id`)
-    REFERENCES `musiclibrarydb`.`playlist` (`playlist_id`)
+    REFERENCES `musiclibrarydb`.`playlists` (`playlist_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_playlistssongs_songs1`
@@ -342,4 +342,4 @@ SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
 INSERT INTO `musiclibrarydb`.`accounts` (`account_id`, `username`, `email`, `password`) VALUES
-(99, 'guest', 'guest@gmail.com', '1234');
+(99, 'guest', 'guest@gmail.com', '1234'), (98, 'admin', 'admin@gmail.com', 'pissword');

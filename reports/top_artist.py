@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 import mysql.connector
 from mysql.connector import Error
 
+
 def fetch_most_listened_artists():
     """Fetch the most listened artists based on song play history."""
     try:
@@ -10,7 +11,7 @@ def fetch_most_listened_artists():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",  # Replace with your username
-            password="your_password",  # Replace with your password
+            password="Adobo5093",  # Replace with your password
             database="musiclibrarydb"  # Replace with your database name
         )
 

@@ -103,7 +103,7 @@ class MusicPlayer:
 
         # Create a Treeview widget
         self.queue_listbox = ttk.Treeview(self.queue_frame, columns=("TitleArtist", "Duration"), show="headings")
-        self.queue_listbox.heading("TitleArtist", text="Title by Artist")
+        self.queue_listbox.heading("TitleArtist", text="Song Title")
         self.queue_listbox.heading("Duration", text="Duration")
         self.queue_listbox.column("TitleArtist", anchor=tk.W, width=100)  # Adjusted width for Title by Artist
         self.queue_listbox.column("Duration", anchor=tk.E, width=100)     # Adjusted width for Duration
