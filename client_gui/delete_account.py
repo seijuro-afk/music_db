@@ -52,10 +52,10 @@ def open_delete_account_gui(main_window):
 
             # Perform deletion of associated data
             delete_queries = [
-                ("DELETE FROM albumartist WHERE artist_id IN (SELECT artist_id FROM artists WHERE email = %s)", (mail,)),
+                ("DELETE FROM albumsartists WHERE artist_id IN (SELECT artist_id FROM artists WHERE email = %s)", (mail,)),
                 ("DELETE FROM artists WHERE email = %s", (mail,)),
-                ("DELETE FROM playlistssongs WHERE playlist_id IN (SELECT playlist_id FROM playlist WHERE email = %s)", (mail,)),
-                ("DELETE FROM playlist WHERE email = %s", (mail,)),
+                ("DELETE FROM playlistssongs WHERE playlist_id IN (SELECT playlist_id FROM playlists WHERE email = %s)", (mail,)),
+                ("DELETE FROM playlists WHERE email = %s", (mail,)),
                 ("DELETE FROM albumssongs WHERE song_id IN (SELECT song_id FROM songsartists WHERE artist_id IN (SELECT artist_id FROM artists WHERE email = %s))", (mail,)),
                 ("DELETE FROM songsartists WHERE artist_id IN (SELECT artist_id FROM artists WHERE email = %s)", (mail,)),
                 ("DELETE FROM songhistory WHERE account_id IN (SELECT account_id FROM accounts WHERE email = %s)", (mail,)),

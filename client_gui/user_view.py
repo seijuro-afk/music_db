@@ -412,7 +412,7 @@ class MusicPlayer:
         if connection is not None:
             cursor = connection.cursor()
             try:
-                query = "SELECT name FROM playlist WHERE email = %s"
+                query = "SELECT name FROM playlists WHERE email = %s"
                 cursor.execute(query, (self.email,))
                 return cursor.fetchall()
             except Error as e:
@@ -454,7 +454,7 @@ class MusicPlayer:
                 # First, check if the playlist exists and has songs
                 check_query = """
                 SELECT COUNT(ps.song_id) 
-                FROM playlist p
+                FROM playlists p
                 LEFT JOIN playlistssongs ps ON p.playlist_id = ps.playlist_id
                 WHERE p.name = %s AND p.email = %s
                 """
@@ -470,7 +470,7 @@ class MusicPlayer:
                 SELECT s.title, s.song_duration 
                 FROM songs s
                 JOIN playlistssongs ps ON s.song_id = ps.song_id
-                JOIN playlist p ON ps.playlist_id = p.playlist_id
+                JOIN playlists p ON ps.playlist_id = p.playlist_id
                 WHERE p.name = %s AND p.email = %s
                 """
                 cursor.execute(query, (playlist_name, self.email))

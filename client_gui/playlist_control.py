@@ -42,7 +42,7 @@ def open_playlist_control_gui(email):
                 cursor = connection.cursor()
                 # Ensure email is passed correctly
                 cursor.execute(
-                    "SELECT playlist_id, name, created_at FROM playlist WHERE email = %s", 
+                    "SELECT playlist_id, name, created_at FROM playlists WHERE email = %s", 
                     (email,)
                 )
                 rows = cursor.fetchall()
@@ -80,7 +80,7 @@ def open_playlist_control_gui(email):
                 created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 # Pass parameters correctly
                 cursor.execute(
-                    "INSERT INTO playlist (name, created_at, email) VALUES (%s, %s, %s)",
+                    "INSERT INTO playlists (name, created_at, email) VALUES (%s, %s, %s)",
                     (playlist_name, created_at, email)
                 )
                 connection.commit()
@@ -113,7 +113,7 @@ def open_playlist_control_gui(email):
                 cursor = connection.cursor()
                 # Use lists instead of tuples for parameters
                 cursor.execute("DELETE FROM playlistssongs WHERE playlist_id = %s", (playlist_id,))
-                cursor.execute("DELETE FROM playlist WHERE playlist_id = %s", (playlist_id,))
+                cursor.execute("DELETE FROM playlists WHERE playlist_id = %s", (playlist_id,))
                 connection.commit()
                 messagebox.showinfo("Success", f"Playlist ID {playlist_id} deleted successfully.")
                 fetch_playlists()
